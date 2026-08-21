@@ -1,0 +1,23 @@
+---
+title: "Praktikum Sains Data 01"
+author: "Qaulan Sadiida Putri Sumarna"
+date: "2026-08-21"
+output: html_document
+---
+
+**LATIHAN MANDIRI**
+
+1)  Tampilkan 10 negara yang memiliki `Armed Forces size` terbesar didunia. Hasil tampilannya harus terdiri dari dua kolom saja. (hint: gunakan fungsi `slice_max`)
+2)  Negara mana saja yang `Fertility Rate`-nya lebih kecil dibandingkan Indonesia? Urutkan dari `Fertility Rate` besar ke kecil. Hasil tampilannya harus terdiri dari dua kolom saja.
+3)  Hitunglah Statistika 5 serangkai dari kolom `Armed Forces size` dan `Fertility Rate`. Tampilkan hasilnya dengan format data long.
+4)  Tunjukkan 5 Nilai mata uang (`Currency-Code`) yang paling banyak digunakan di dunia!
+5)  Diantara negara-negara yang tergabung dalam ASEAN, tunjukkan 3 negara yang miliki `Infant mortality` tertinggi dan 3 negara yang memiliki `Infant mortality` terendah.
+
+```{r}
+library(tidyverse)
+library(readr)
+```
+
+```{r}
+country_data <- read_csv("world-data-2023.csv",show_col_types = FALSE)
+```
