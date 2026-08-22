@@ -13,11 +13,132 @@ output: html_document
 4)  Tunjukkan 5 Nilai mata uang (`Currency-Code`) yang paling banyak digunakan di dunia!
 5)  Diantara negara-negara yang tergabung dalam ASEAN, tunjukkan 3 negara yang miliki `Infant mortality` tertinggi dan 3 negara yang memiliki `Infant mortality` terendah.
 
+# Library & Data
 ```{r}
 library(tidyverse)
-library(readr)
 ```
 
 ```{r}
 country_data <- read_csv("world-data-2023.csv",show_col_types = FALSE)
+glimpse(country_data)
 ```
+Karena terdapat beberapa kolom yang terdeteksi sebagai chr padahal adalah angka, maka diperlukan formating kembali:
+
+```{r}
+# Membersihkan kolom yang mengandung simbol $ dan % menjadi tipe numerik (dbl)
+country_clean <- country_data %>%
+  mutate(
+    across(
+      .cols = c(
+        `Agricultural Land( %)`, 
+        `CPI Change (%)`, 
+        `Forested Area (%)`, 
+        `Gross primary education enrollment (%)`, 
+        `Gross tertiary education enrollment (%)`, 
+        `Out of pocket health expenditure`, 
+        `Population: Labor force participation (%)`, 
+        `Tax revenue (%)`, 
+        `Total tax rate`, 
+        `Unemployment rate`,
+        `Gasoline Price`, 
+        GDP, 
+        `Minimum wage`
+      ),
+      .fns = parse_number
+    )
+  )
+
+# Cek kembali hasilnya
+glimpse(country_clean)
+```
+# Soal 1: Top 10 `Armed Forces size`
+```{r}
+soal_1 <- country_clean %>%
+  select(Country, `Armed Forces size`) %>%
+  slice_max(order_by = `Armed Forces size`, n = 10)
+
+soal_1
+```
+
+# Soal 2: `Fertility Rate` Lebih kecil dari Indonesia 
+
+```{r}
+# Mengambil nilai Fertility Rate Indonesia
+indo_fertility <- country_clean %>%
+  filter(Country == "Indonesia") %>%
+  pull(`Fertility Rate`)
+
+indo_fertility
+```
+
+```{r}
+soal_2 <- country_clean %>%
+  select(Country, `Fertility Rate`) %>%
+  filter(`Fertility Rate` < indo_fertility) %>%
+  arrange(desc(`Fertility Rate`))
+
+soal_2
+```
+
+# Soal 3: Statistik 5 serangkai `Armed Forces size` dan `Fertility Rate`
+
+```{r}
+# Menjawab Soal 3
+soal_3 <- country_clean %>%
+  select(`Armed Forces size`, `Fertility Rate`) %>%
+  pivot_longer(cols = everything(), names_to = "Variabel", values_to = "Nilai") %>%
+  group_by(Variabel) %>%
+  summarise(
+    Minimum = min(Nilai, na.rm = TRUE),
+    Q1 = quantile(Nilai, 0.25, na.rm = TRUE),
+    Median = median(Nilai, na.rm = TRUE),
+    Q3 = quantile(Nilai, 0.75, na.rm = TRUE),
+    Maksimum = max(Nilai, na.rm = TRUE)
+  ) %>%
+  pivot_longer(
+    cols = -Variabel, 
+    names_to = "Statistika", 
+    values_to = "Nilai_Statistika"
+  )
+
+soal_3
+```
+
+# Soal 4: Top 5 `Currency-Code`
+
+```{r}
+# Menjawab Soal 4
+soal_4 <- country_clean %>%
+  count(`Currency-Code`, name = "Frekuensi", sort = TRUE) %>%
+  drop_na(`Currency-Code`) %>% # Mengabaikan jika ada mata uang yang kosong (NA)
+  slice_max(order_by = Frekuensi, n = 5)
+
+soal_4
+```
+# Soal 5: 3 Negara ASEAN dengan `Infant mortality` tertinggi dan terendah
+
+```{r}
+# Definisi negara ASEAN
+asean <- c("Indonesia", "Malaysia", "Singapore", "Thailand", 
+           "Philippines", "Vietnam", "Brunei", "Myanmar", 
+           "Cambodia", "Laos")
+
+# Filter khusus data ASEAN
+data_asean <- country_clean %>%
+  filter(Country %in% asean) %>%
+  select(Country, `Infant mortality`) %>%
+  drop_na(`Infant mortality`)
+
+# Menjawab Soal 5
+soal_5 <- bind_rows(
+  data_asean %>% 
+    slice_max(order_by = `Infant mortality`, n = 3) %>% 
+    mutate(Kategori = "Tertinggi"),
+  data_asean %>% 
+    slice_min(order_by = `Infant mortality`, n = 3) %>% 
+    mutate(Kategori = "Terendah")
+)
+
+soal_5
+```
+
